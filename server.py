@@ -17,24 +17,29 @@ import random
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+db_name = os.environ.get('DB_NAME', 'smart_campus')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[db_name]
 
 JWT_SECRET = os.environ.get('JWT_SECRET', 'smartcampus_jwt_secret_2024_xK9mP2vL8qR3')
 JWT_ALGORITHM = 'HS256'
 
 app = FastAPI(title="Smart Campus Management System API")
 
-# --- YAHAN CORS MIDDLEWARE ADD KIYA GAYA HAI ---
+# --- CORS MIDDLEWARE ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Ye line tumhare Phone aur PC dono ko allow karegi
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# -----------------------------------------------
+
+# --- Health Check (required by Railway/Render) ---
+@app.get("/")
+async def health_check():
+    return {"status": "ok", "service": "Smart Campus API"}
 
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
